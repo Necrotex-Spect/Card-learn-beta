@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Физика: Карточки для коллоквиума</title>
+    <style>
+        :root {
+            --bg-color: #f0f2f5;
+            --card-bg-front: #ffffff;
+            --card-bg-back: #fafbfc;
+            --text-color: #333333;
+            --primary: #4a90e2;
+            --success: #2ec4b6;
+            --danger: #e71d36;
+            --neutral: #7f8c8d;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: space-between;
+            min-height: 100vh;
+            padding: 20px;
+            overflow-x: hidden;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 10px;
+        }
+
+        header h1 {
+            font-size: 1.5rem;
+            color: #2c3e50;
+            margin-bottom: 5px;
+        }
+
+        .counter {
+            font-size: 0.9rem;
+            color: var(--neutral);
+            font-weight: bold;
+        }
+
+        .card-container {
+            width: 100%;
+            max-width: 400px;
+            height: 450px;
+            perspective: 1000px;
+            position: relative;
+            cursor: pointer;
+        }
+
+        .card {
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            transform-style: preserve-3d;
+            transition: transform 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            border-radius: 20px;
+        }
+
+        .card.is-flipped {
+            transform: rotateY(180deg);
+        }
+
+        .card-face {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            border-radius: 20px;
+            padding: 30px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .card-front {
+            background-color: var(--card-bg-front);
+            color: var(--text-color);
+            justify-content: center;
+            align-items: center;
+        }
+
+        .card-front .q-number {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            font-size: 0.85rem;
+            font-weight: bold;
+            color: var(--primary);
+            background: rgba(74, 144, 226, 0.1);
+            padding: 4px 10px;
+            border-radius: 20px;
+        }
+
+        .card-front .question-text {
+            font-size: 1.2rem;
+            text-align: center;
+            font-weight: 600;
+            line-height: 1.5;
+        }
+
+        .card-front .hint {
+            position: absolute;
+            bottom: 20px;
+            font-size: 0.8rem;
+            color: #95a5a6;
+            text-align: center;
+            width: 100%;
+            left: 0;
+        }
+
+        .card-back {
+            background-color: var(--card-bg-back);
+            transform: rotateY(180deg);
+            overflow-y: auto;
+            justify-content: flex-start;
+            align-items: flex-start;
+        }
+
+        .card-back .question-header {
+            font-size: 0.95rem;
+            font-weight: bold;
+            color: #555555;
+            background: #eef2f7;
+            padding: 10px;
+            border-radius: 10px;
+            width: 100%;
+            margin-bottom: 15px;
+            line-height: 1.4;
+            border-left: 4px solid var(--primary);
+        }
+
+        .card-back h3 {
+            font-size: 0.9rem;
+            margin-bottom: 8px;
+            color: var(--primary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            width: 100%;
+        }
+
+        .answer-text {
+            font-size: 0.9rem;
+            line-height: 1.6;
+            width: 100%;
+        }
+
+        .formula {
+            background: #eef2f7;
+            padding: 8px;
+            border-radius: 8px;
+            font-family: 'Courier New', Courier, monospace;
+            font-weight: bold;
+            margin: 10px 0;
+            display: block;
+            text-align: center;
+        }
+
+        .controls {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            width: 100%;
+            max-width: 400px;
+            margin-top: 20px;
+            margin-bottom: 10px;
+        }
+
+        .main-btns {
+            display: flex;
+            gap: 15px;
+            width: 100%;
+        }
+
+        button {
+            padding: 15px;
+            border: none;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.1s, opacity 0.2s;
+            color: white;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        button:active {
+            transform: scale(0.98);
+        }
+
+        .btn-repeat {
+            background-color: var(--danger);
+            flex: 1;
+        }
+
+        .btn-know {
+            background-color: var(--success);
+            flex: 1;
+        }
+
+        .btn-restart {
+            background-color: var(--neutral);
+            width: 100%;
+        }
+
+        .info-footer {
+            font-size: 0.8rem;
+            color: #bdc3c7;
+            text-align: center;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>Коллоквиум: Механика</h1>
+        <div class="counter" id="counter">Осталось карт в колоде: 35</div>
+    </header>
+
+    <div class="card-container" id="cardContainer">
+        <div class="card" id="card">
+            <div class="card-face card-front">
+                <span class="q-number" id="qNumber">Вопрос 1</span>
+                <p class="question-text" id="questionText">Загрузка вопроса...</p>
+                <span class="hint">Нажмите, чтобы увидеть ответ</span>
+            </div>
+            <div class="card-face card-back">
+                <div class="question-header" id="backQuestionText">Название вопроса</div>
+                <h3>Ответ:</h3>
+                <div class="answer-text" id="answerText">Загрузка ответа...</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="controls">
+        <div class="main-btns" id="mainBtns">
+            <button class="btn-repeat" onclick="handleAction(false)">Повторить</button>
+            <button class="btn-know" onclick="handleAction(true)">Знаю!</button>
+        </div>
+        <button class="btn-restart" onclick="restartDeck()">Начать заново (Перемешать)</button>
+    </div>
+
+    <div class="info-footer">
+        Карточки перемешиваются автоматически. Нажмите «Повторить», чтобы отправить карту в конец колоды.
+    </div>
+
+    <script>
+        const initialQuestions = [
+            { id: "1", q: "Радиус-вектор (определение), разложение по координатным векторам. Рисунок.", a: "<b>Определение:</b> Вектор, соединяющий начало координат с положением точки в пространстве.<br><br><b>Формула:</b> r = x·i + y·j + z·k<br>где x,y,z — координаты, i,j,k — орты осей." },
+            { id: "2", q: "Средняя скорость (определение, формула, ед. изм., направление, расшифровка).", a: "<b>Определение:</b> Вектор перемещения деленный на промежуток времени.<br><br><b>Формула:</b> &lt;v&gt; = Δr / Δt<br><b>Ед. изм:</b> м/с.<br><b>Направление:</b> Совпадает с вектором перемещения Δr." },
+            { id: "3", q: "Мгновенная скорость (определение, формула, ед. изм., направление, расшифровка).", a: "<b>Определение:</b> Предел средней скорости при Δt → 0 (производная радиус-вектора по времени).<br><br><b>Формула:</b> v = dr / dt<br><b>Ед. изм:</b> м/с.<br><b>Направление:</b> По касательной к траектории движения." },
+            { id: "4", q: "Среднее ускорение (определение, формула, ед. изм., направление, расшифровка).", a: "<b>Определение:</b> Отношение изменения мгновенной скорости к промежутку времени Δt.<br><br><b>Формула:</b> &lt;a&gt; = Δv / Δt<br><b>Ед. изм:</b> м/с².<br><b>Направление:</b> Совпадает с вектором изменения скорости Δv." },
+            { id: "5", q: "Мгновенное ускорение (определение, формула, ед. изм., направление, расшифровка).", a: "<b>Определение:</b> Быстрота изменения скорости в данный момент времени (производная скорости по времени).<br><br><b>Формула:</b> a = dv / dt = d²r / dt²<br><b>Ед. изм:</b> м/с².<br><b>Направление:</b> Внутрь вогнутости траектории." },
+            { id: "6", q: "Нормальная составляющая ускорения при криволинейном движении.", a: "<b>Что характеризует:</b> Изменение скорости по <i>направлению</i>.<br><br><b>Формула:</b> a_n = v² / R<br>где v — скорость, R — радиус кривизны.<br><b>Направление:</b> К центру кривизны траектории (по нормали)." },
+            { id: "7", q: "Тангенциальная составляющая ускорения при криволинейном движении.", a: "<b>Что характеризует:</b> Изменение скорости по <i>модулю</i>.<br><br><b>Формула:</b> a_tau = dv / dt<br><b>Направление:</b> По касательной к траектории (вдоль или против вектора скорости)." },
+            { id: "8", q: "Длина пути (общая формула), геом. интерпретация. Путь при равномерном движении.", a: "<b>Формула:</b> s = ∫v(t)dt.<br><b>Геометрия:</b> Площадь под графиком зависимости скорости v(t) от времени.<br><b>При равномерном движении:</b> s = v·t." },
+            { id: "9", q: "Длина пути (общая формула). Формула пути при равноускоренном движении.", a: "<b>Общая формула:</b> s = ∫v(t)dt.<br><b>При равноускоренном движении (без изменения направления):</b><br><span class='formula'>s = v₀·t + (a·t²)/2</span>" },
+            { id: "10.1", q: "1-й закон Ньютона (формула, определение).", a: "Определение: Существуют такие системы отсчета (ИСО), в которых тело сохраняет состояние покоя или равномерного прямолинейного движения, если на него не действуют силы или действия сил скомпенсированы.<br><br>Формула: Если F_равнодейств = 0, то v = const." },
+            { id: "11.2", q: "2-й закон Ньютона (формула, определение).", a: "Определение: Ускорение тела прямо пропорционально равнодействующей всех сил и обратно пропорционально массе тела.<br><br>Формула: a = F / m или F = m·a" },
+            { id: "12.3", q: "3-й закон Ньютона (формула, определение).", a: "Определение: Тела взаимодействуют друг с другом с силами, направленными вдоль одной прямой, равными по модулю и противоположными по направлению.<br><br>Формула: F₁₂ = -F₂₁" },
+            { id: "13", q: "Принцип относительности Галилея. Преобразования Галилея.", a: "Принцип: Во всех ИСО законы механики протекают одинаково.<br><br>Преобразования координат (для движения вдоль оси X):<br>x' = x - V·t, y' = y, z' = z, t' = t." },
+            { id: "14.2", q: "2-й закон Ньютона в импульсной форме (формула, определение).", a: "Определение: Скорость изменения импульса тела равна действующей на него силе.<br><br>Формула: d(p)/dt = F, где p = m·v — импульс тела." },
+            { id: "15", q: "Центр инерции (масс). Радиус-вектор ЦИ и 2-й закон Ньютона для ЦИ.", a: "Определение: Геометрическая точка, характеризующая распределение масс системы.<br><br>Радиус-вектор: R_c = (∑m_i·r_i) / ∑m_i<br><br>2-й закон Ньютона для ЦИ: m·a_c = F_внеш (внутренние силы системы взаимно уничтожаются)." },
+            { id: "16", q: "Работа силы (формула для общего случая переменной силы, расшифровка).", a: "Формула: A = ∫ (F, dr) = ∫ F · cos(α) · ds<br><br>Расшифровка: F — вектор силы, dr — вектор элементарного перемещения, α — угол между силой и вектором скорости." },
+            { id: "17", q: "Связь между работой и кинетической энергией. Теорема о кин. энергии.", a: "Теорема: Работа равнодействующей всех сил равна изменению кинетической энергии тела.<br><br>Формула: A = ΔE_k = E_k2 - E_k1, где E_k = (m·v²)/2" },
+            { id: "18", q: "Потенциальная энергия у поверхности Земли. Работа силы тяжести.", a: "Потенциальная энергия: E_p = m·g·h<br><br>Работа силы тяжести: A = -ΔE_p = m·g·(h₁ - h₂). Не зависит от формы траектории, зависит только от начальной и конечной высоты." },
+            { id: "19", q: "Консервативные силы (определение). Работа по замкнутому пути.", a: "Определение: Силы, работа которых зависит только от начального и конечного положения тела и не зависит от формы траектории.<br><br>Работа по замкнутому пути: Всегда равна нулю (A_замкн = 0). Пример: сила тяжести, сила упругости." },
+            { id: "20", q: "Диссипативные силы (определение). Работа по замкнутому пути.", a: "Определение: Силы, работа которых всегда отрицательна и приводит к уменьшению механической энергии системы (переходу в тепло).<br><br>Работа по замкнутому пути: Отлична от нуля (A_замкн < 0). Пример: сила трения." },
+            { id: "21", q: "Связь между силой и потенциальной энергией.", a: "Связь: Консервативная сила равна градиенту потенциальной энергии с знаком минус.<br><br>Формула: F = - grad(E_p) = - ( dE_p/dx · i + dE_p/dy · j + dE_p/dz · k )" },
+            { id: "22", q: "Закон сохранения механической энергии.", a: "Закон: В замкнутой системе тел, в которой действуют только консервативные силы, полная механическая энергия сохраняется.<br><br>Формула: E = E_k + E_p = const" },
+            { id: "23", q: "Закон изменения механической энергии.", a: "Закон: Изменение полной механической энергии системы равно работе внешних сил и внутренних диссипативных сил (сил трения).<br><br>Формула: ΔE = A_внеш + A_дисс" },
+            { id: "24", q: "Угловое перемещение (определение, формула, расшифровка, ед. изм., направление).", a: "Определение: Вектор поворота тела на угол dφ.<br><br>Формула/Ед.изм: Измеряется в радианах [рад].<br><br>Направление: Вдоль оси вращения, определяется по правилу правого винта (буравчика)." },
+            { id: "25", q: "Угловая скорость (определение, формула, ед. изм., направление).", a: "Определение: Векторная величина, равная производной угла поворота по времени.<br><br>Формула: ω = dφ / dt<br><br>Ед. изм: рад/с.<br><br>Направление: Вдоль оси вращения по правилу правого винта (сонаправлено dφ)." },
+            { id: "26", q: "Угловое ускорение (определение, формула, ед. изм., направление).", a: "Определение: Быстрота изменения вектора угловой скорости.<br><br>Формула: ε = dω / dt<br><br>Ед. изм: рад/с².<br><br>Направление: Вдоль оси вращения (совпадает с ω при ускорении, противоположно — при замедлении)." },
+            { id: "27", q: "Связь угловой и линейной скорости (формула, направление векторов).", a: "Связь: Линейная скорость равна векторному произведению угловой скорости на радиус-вектор.<br><br>Формула: v = [ω, r], по модулю v = ω·r·sin(α).<br><br>Направление: v перпендикулярно плоскости векторов ω и r." },
+            { id: "28", q: "Связь углового ускорения и компонент линейного ускорения.", a: "Тангенциальное ускорение: a_tau = ε · R<br><br>Нормальное ускорение: a_n = ω² · R<br><br>Полное линейное ускорение: a = √(a_tau² + a_n²) = R · √(ε² + ω⁴)" },
+            { id: "29", q: "Момент инерции матер. точки и АТТ относительно оси. Теорема Штейнера.", a: "Точка: J = m·r².<br><br>АТТ: J = ∫ r² dm.<br><br>Теорема Штейнера: Момент инерции J относительно произвольной оси равен моменту J₀ относительно параллельной оси через центр масс плюс m·d²:<br>J = J₀ + m·d²" },
+            { id: "30", q: "Момент силы относительно оси вращения (определение, формула, ед.изм., направление).", a: "Определение: Проекция вектора момента силы относительно точки на ось вращения.<br><br>Формула: M = F · d, где d — плечо силы (кратчайшее расстояние от оси до линии действия силы).<br><br>Ед. изм: Н·м." },
+            { id: "31", q: "II закон Ньютона для вращательного движения АТТ.", a: "Определение: Угловое ускорение твердого тела при вращении вокруг неподвижной оси прямо пропорционально моменту действующих сил и обратно пропорционально моменту инерции.<br><br>Формула: M = J · ε" },
+            { id: "32", q: "Момент импульса материальной точки и АТТ (формула, связь с J).", a: "Матер. точка: L = [r, p], по модулю L = r·m·v·sin(α).<br><br>Твердое тело (АТТ) относительно оси: L = J · ω<br>где J — момент инерции, ω — угловая скорость." },
+            { id: "33", q: "II закон Ньютона для вращательного движения АТТ через момент импульса.", a: "Определение: Производная момента импульса тела по времени равна суммарному моменту внешних сил.<br><br>Формула: dL / dt = M_внеш" },
+            { id: "34", q: "Закон сохранения момента импульса (определение, формула).", a: "Закон: Если суммарный момент внешних сил, действующих на систему, равен нулю, то момент импульса системы сохраняется.<br><br>Формула: Если M_внеш = 0, то L = J · ω = const" },
+            { id: "35", q: "Кинетическая энергия вращающегося тела (полная формула).", a: "Вращение вокруг неподвижной оси: E_k = (J · ω²) / 2<br><br>Плоское движение (качение без проскальзывания): Сумма энергии поступательного движения ЦИ и вращательного движения вокруг ЦИ:<br>E_k = (m · v_c²) / 2 + (J_c · ω²) / 2" }
+        ];
+
+        let deck = [];
+        let currentCardIndex = 0;
+
+        const card = document.getElementById('card');
+        const questionText = document.getElementById('questionText');
+        const backQuestionText = document.getElementById('backQuestionText');
+        const answerText = document.getElementById('answerText');
+        const qNumber = document.getElementById('qNumber');
+        const counter = document.getElementById('counter');
+        const cardContainer = document.getElementById('cardContainer');
+        const mainBtns = document.getElementById('mainBtns');
+
+        // Функция перемешивания тасованием Фишера-Йетса
+        function shuffle(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+
+        // Переворот карточки по клику
+        card.addEventListener('click', () => {
+            card.classList.toggle('is-flipped');
+        });
+
+        // Обновление контента карты
+        function updateCard() {
+            if (deck.length === 0) {
+                cardContainer.style.display = 'none';
+                mainBtns.style.display = 'none';
+                counter.innerText = "Поздравляем! Колода полностью изучена!";
+                return;
+            }
+
+            cardContainer.style.display = 'block';
+            mainBtns.style.display = 'flex';
+
+            if (currentCardIndex >= deck.length) {
+                currentCardIndex = 0;
+            }
+
+            const currentCard = deck[currentCardIndex];
+            card.classList.remove('is-flipped');
+
+            setTimeout(() => {
+                qNumber.innerText = `Вопрос ${currentCard.id}`;
+                questionText.innerHTML = currentCard.q;
+                // Дублируем название вопроса на рубашку карты
+                backQuestionText.innerHTML = `<b>Вопрос ${currentCard.id}:</b> ${currentCard.q}`;
+                answerText.innerHTML = currentCard.a;
+                counter.innerText = `Осталось карт в колоде: ${deck.length}`;
+            }, 150);
+        }
+
+        // Действия «Знаю» или «Повторить»
+        function handleAction(knows) {
+            if (deck.length === 0) return;
+
+            if (knows) {
+                deck.splice(currentCardIndex, 1);
+            } else {
+                const activeCard = deck.splice(currentCardIndex, 1)[0];
+                deck.push(activeCard);
+            }
+            updateCard();
+        }
+
+        // Перезапуск и рандомизация колоды
+        function restartDeck() {
+            deck = shuffle([...initialQuestions]);
+            currentCardIndex = 0;
+            updateCard();
+        }
+
+        // Автоматический старт при первой загрузке страницы
+        restartDeck();
+    </script>
+</body>
+</html>
