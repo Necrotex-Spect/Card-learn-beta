@@ -2,7 +2,11 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="theme-color" content="#f0f2f5">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <title>Физика: Карточки для коллоквиума</title>
     <style>
         :root {
@@ -14,6 +18,11 @@
             --success: #2ec4b6;
             --danger: #e71d36;
             --neutral: #7f8c8d;
+
+            --card-padding: clamp(16px, 5vw, 30px);
+            --card-radius: clamp(14px, 4vw, 20px);
+            --gap: clamp(8px, 2.5vw, 15px);
+            --btn-padding: clamp(12px, 3.5vw, 15px);
         }
 
         * {
@@ -21,6 +30,11 @@
             margin: 0;
             padding: 0;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        html, body {
+            overscroll-behavior: none;
         }
 
         body {
@@ -31,34 +45,61 @@
             align-items: center;
             justify-content: space-between;
             min-height: 100vh;
-            padding: 20px;
+            min-height: 100dvh;
+            padding:
+                max(12px, env(safe-area-inset-top))
+                max(12px, env(safe-area-inset-right))
+                max(12px, env(safe-area-inset-bottom))
+                max(12px, env(safe-area-inset-left));
+            padding-top: max(12px, env(safe-area-inset-top));
+            padding-bottom: max(12px, env(safe-area-inset-bottom));
             overflow-x: hidden;
+            touch-action: manipulation;
+            gap: 8px;
         }
 
         header {
             text-align: center;
-            margin-bottom: 10px;
+            margin-bottom: 4px;
+            flex-shrink: 0;
+            width: 100%;
+            max-width: 400px;
         }
 
         header h1 {
-            font-size: 1.5rem;
+            font-size: clamp(1.1rem, 4.5vw, 1.5rem);
             color: #2c3e50;
-            margin-bottom: 5px;
+            margin-bottom: 4px;
+            line-height: 1.2;
         }
 
         .counter {
-            font-size: 0.9rem;
+            font-size: clamp(0.75rem, 3vw, 0.9rem);
             color: var(--neutral);
             font-weight: bold;
+            display: inline-block;
+            transition: color 0.3s ease;
+        }
+
+        .counter.pulse {
+            animation: counterPulse 0.45s ease;
+        }
+
+        @keyframes counterPulse {
+            0%   { transform: scale(1); color: var(--neutral); }
+            40%  { transform: scale(1.18); color: var(--primary); }
+            100% { transform: scale(1); color: var(--neutral); }
         }
 
         .card-container {
             width: 100%;
             max-width: 400px;
-            height: 450px;
+            height: clamp(340px, 60dvh, 450px);
             perspective: 1000px;
             position: relative;
             cursor: pointer;
+            flex-shrink: 0;
+            /* Анимация будет применяться к этому контейнеру */
         }
 
         .card {
@@ -68,7 +109,15 @@
             transform-style: preserve-3d;
             transition: transform 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
             box-shadow: 0 10px 25px rgba(0,0,0,0.1);
-            border-radius: 20px;
+            border-radius: var(--card-radius);
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+            -webkit-touch-callout: none;
+            -webkit-tap-highlight-color: transparent;
+            touch-action: manipulation;
+            will-change: transform;
         }
 
         .card.is-flipped {
@@ -80,10 +129,16 @@
             width: 100%;
             height: 100%;
             backface-visibility: hidden;
-            border-radius: 20px;
-            padding: 30px;
+            -webkit-backface-visibility: hidden;
+            border-radius: var(--card-radius);
+            padding: var(--card-padding);
             display: flex;
             flex-direction: column;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+            -webkit-touch-callout: none;
         }
 
         .card-front {
@@ -95,9 +150,9 @@
 
         .card-front .q-number {
             position: absolute;
-            top: 20px;
-            left: 20px;
-            font-size: 0.85rem;
+            top: clamp(12px, 4vw, 20px);
+            left: clamp(12px, 4vw, 20px);
+            font-size: clamp(0.7rem, 2.8vw, 0.85rem);
             font-weight: bold;
             color: var(--primary);
             background: rgba(74, 144, 226, 0.1);
@@ -106,45 +161,61 @@
         }
 
         .card-front .question-text {
-            font-size: 1.2rem;
+            font-size: clamp(1rem, 4.2vw, 1.2rem);
             text-align: center;
             font-weight: 600;
             line-height: 1.5;
+            padding: 0 clamp(4px, 2vw, 12px);
         }
 
         .card-front .hint {
             position: absolute;
-            bottom: 20px;
-            font-size: 0.8rem;
+            bottom: clamp(12px, 4vw, 20px);
+            font-size: clamp(0.7rem, 2.6vw, 0.8rem);
             color: #95a5a6;
             text-align: center;
             width: 100%;
             left: 0;
+            padding: 0 12px;
         }
 
         .card-back {
             background-color: var(--card-bg-back);
             transform: rotateY(180deg);
             overflow-y: auto;
+            overflow-x: hidden;
             justify-content: flex-start;
             align-items: flex-start;
+            overscroll-behavior: contain;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .card-back::-webkit-scrollbar {
+            width: 6px;
+        }
+        .card-back::-webkit-scrollbar-thumb {
+            background: rgba(74, 144, 226, 0.3);
+            border-radius: 3px;
+        }
+        .card-back::-webkit-scrollbar-track {
+            background: transparent;
         }
 
         .card-back .question-header {
-            font-size: 0.95rem;
+            font-size: clamp(0.8rem, 3.2vw, 0.95rem);
             font-weight: bold;
             color: #555555;
             background: #eef2f7;
-            padding: 10px;
+            padding: clamp(8px, 2.5vw, 10px);
             border-radius: 10px;
             width: 100%;
-            margin-bottom: 15px;
+            margin-bottom: clamp(10px, 3vw, 15px);
             line-height: 1.4;
             border-left: 4px solid var(--primary);
         }
 
         .card-back h3 {
-            font-size: 0.9rem;
+            font-size: clamp(0.75rem, 2.8vw, 0.9rem);
             margin-bottom: 8px;
             color: var(--primary);
             text-transform: uppercase;
@@ -153,9 +224,20 @@
         }
 
         .answer-text {
-            font-size: 0.9rem;
+            font-size: clamp(0.8rem, 3vw, 0.9rem);
             line-height: 1.6;
             width: 100%;
+            overflow-wrap: break-word;
+            word-wrap: break-word;
+        }
+
+        .answer-text,
+        .question-header {
+            -webkit-user-select: text;
+            -moz-user-select: text;
+            -ms-user-select: text;
+            user-select: text;
+            -webkit-touch-callout: default;
         }
 
         .formula {
@@ -167,38 +249,51 @@
             margin: 10px 0;
             display: block;
             text-align: center;
+            overflow-x: auto;
+            white-space: nowrap;
+            -webkit-overflow-scrolling: touch;
         }
 
         .controls {
             display: flex;
             flex-direction: column;
-            gap: 12px;
+            gap: var(--gap);
             width: 100%;
             max-width: 400px;
-            margin-top: 20px;
-            margin-bottom: 10px;
+            margin-top: 4px;
+            margin-bottom: 4px;
+            flex-shrink: 0;
         }
 
         .main-btns {
             display: flex;
-            gap: 15px;
+            gap: var(--gap);
             width: 100%;
         }
 
         button {
-            padding: 15px;
+            padding: var(--btn-padding);
             border: none;
-            border-radius: 12px;
-            font-size: 1rem;
+            border-radius: clamp(10px, 3vw, 12px);
+            font-size: clamp(0.9rem, 3.4vw, 1rem);
             font-weight: bold;
             cursor: pointer;
             transition: transform 0.1s, opacity 0.2s;
             color: white;
             box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            touch-action: manipulation;
+            user-select: none;
+            -webkit-user-select: none;
+            min-height: 48px;
         }
 
         button:active {
             transform: scale(0.98);
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
         }
 
         .btn-repeat {
@@ -217,10 +312,91 @@
         }
 
         .info-footer {
-            font-size: 0.8rem;
+            font-size: clamp(0.65rem, 2.5vw, 0.8rem);
             color: #bdc3c7;
             text-align: center;
-            margin-top: 10px;
+            margin-top: 4px;
+            padding: 0 8px;
+            flex-shrink: 0;
+        }
+
+        @media (max-width: 480px) {
+            body {
+                justify-content: flex-start;
+                gap: 10px;
+            }
+
+            .card-container {
+                height: clamp(320px, 58dvh, 420px);
+            }
+
+            .card-front .question-text {
+                padding: 0 4px;
+            }
+
+            .info-footer {
+                display: none;
+            }
+        }
+
+        @media (max-width: 360px) {
+            .card-container {
+                height: clamp(300px, 55dvh, 380px);
+            }
+
+            .main-btns {
+                flex-direction: column;
+            }
+        }
+
+        @media (max-height: 500px) and (orientation: landscape) {
+            body {
+                justify-content: flex-start;
+                padding-top: 8px;
+                padding-bottom: 8px;
+            }
+
+            header h1 {
+                font-size: 1rem;
+            }
+
+            .card-container {
+                height: clamp(220px, 70dvh, 320px);
+                max-width: min(600px, 90vw);
+            }
+
+            .controls {
+                max-width: min(600px, 90vw);
+                flex-direction: row;
+                flex-wrap: wrap;
+            }
+
+            .main-btns {
+                flex: 2;
+                min-width: 200px;
+            }
+
+            .btn-restart {
+                flex: 1;
+                min-width: 150px;
+                width: auto;
+            }
+
+            .info-footer {
+                display: none;
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .card {
+                transition: transform 0.15s ease;
+            }
+            button:active {
+                transform: none;
+            }
+            .counter.pulse {
+                animation: none;
+            }
         }
     </style>
 </head>
@@ -248,14 +424,10 @@
 
     <div class="controls">
         <div class="main-btns" id="mainBtns">
-            <button class="btn-repeat" onclick="handleAction(false)">Повторить</button>
-            <button class="btn-know" onclick="handleAction(true)">Знаю!</button>
+            <button class="btn-repeat" id="btnRepeat" onclick="handleAction(false)">Повторить</button>
+            <button class="btn-know" id="btnKnow" onclick="handleAction(true)">Знаю!</button>
         </div>
-        <button class="btn-restart" onclick="restartDeck()">Начать заново (Перемешать)</button>
-    </div>
-
-    <div class="info-footer">
-        Карточки перемешиваются автоматически. Нажмите «Повторить», чтобы отправить карту в конец колоды.
+        <button class="btn-restart" id="btnRestart" onclick="restartDeck()">Начать заново (Перемешать)</button>
     </div>
 
     <script>
@@ -299,17 +471,22 @@
 
         let deck = [];
         let currentCardIndex = 0;
+        let isAnimating = false;
 
         const card = document.getElementById('card');
+        const cardContainer = document.getElementById('cardContainer');
         const questionText = document.getElementById('questionText');
         const backQuestionText = document.getElementById('backQuestionText');
         const answerText = document.getElementById('answerText');
         const qNumber = document.getElementById('qNumber');
         const counter = document.getElementById('counter');
-        const cardContainer = document.getElementById('cardContainer');
         const mainBtns = document.getElementById('mainBtns');
+        const btnRepeat = document.getElementById('btnRepeat');
+        const btnKnow = document.getElementById('btnKnow');
+        const btnRestart = document.getElementById('btnRestart');
 
-        // Функция перемешивания тасованием Фишера-Йетса
+        const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
         function shuffle(array) {
             for (let i = array.length - 1; i > 0; i--) {
                 const j = Math.floor(Math.random() * (i + 1));
@@ -318,13 +495,26 @@
             return array;
         }
 
-        // Переворот карточки по клику
+        function pulseCounter() {
+            counter.classList.remove('pulse');
+            void counter.offsetWidth;
+            counter.classList.add('pulse');
+        }
+
         card.addEventListener('click', () => {
+            if (isAnimating) return;
             card.classList.toggle('is-flipped');
         });
 
-        // Обновление контента карты
-        function updateCard() {
+        function fillCardContent(currentCard) {
+            qNumber.innerText = `Вопрос ${currentCard.id}`;
+            questionText.innerHTML = currentCard.q;
+            backQuestionText.innerHTML = `<b>Вопрос ${currentCard.id}:</b> ${currentCard.q}`;
+            answerText.innerHTML = currentCard.a;
+            counter.innerText = `Осталось карт в колоде: ${deck.length}`;
+        }
+
+        function renderCardInstant() {
             if (deck.length === 0) {
                 cardContainer.style.display = 'none';
                 mainBtns.style.display = 'none';
@@ -341,20 +531,84 @@
 
             const currentCard = deck[currentCardIndex];
             card.classList.remove('is-flipped');
-
-            setTimeout(() => {
-                qNumber.innerText = `Вопрос ${currentCard.id}`;
-                questionText.innerHTML = currentCard.q;
-                // Дублируем название вопроса на рубашку карты
-                backQuestionText.innerHTML = `<b>Вопрос ${currentCard.id}:</b> ${currentCard.q}`;
-                answerText.innerHTML = currentCard.a;
-                counter.innerText = `Осталось карт в колоде: ${deck.length}`;
-            }, 150);
+            fillCardContent(currentCard);
         }
 
-        // Действия «Знаю» или «Повторить»
-        function handleAction(knows) {
-            if (deck.length === 0) return;
+        async function animateCardChange(direction) {
+            if (isAnimating) return;
+            isAnimating = true;
+
+            btnRepeat.disabled = true;
+            btnKnow.disabled = true;
+
+            // 1. Уход текущей карты (анимируем КОНТЕЙНЕР, а не саму карточку)
+            if (!prefersReducedMotion) {
+                const exitDistance = direction * (window.innerWidth < 500 ? 120 : 180);
+                const exitAnim = cardContainer.animate(
+                    [
+                        { transform: 'translateX(0) rotate(0deg) scale(1)', opacity: 1 },
+                        { transform: `translateX(${exitDistance}px) rotate(${direction * 8}deg) scale(0.85)`, opacity: 0 }
+                    ],
+                    {
+                        duration: 280,
+                        easing: 'cubic-bezier(0.4, 0, 1, 1)',
+                        fill: 'forwards'
+                    }
+                );
+
+                try {
+                    await exitAnim.finished;
+                } catch (e) { /* анимация могла быть отменена */ }
+            }
+
+            // 2. Пока карта смещена — подменяем контент
+            if (deck.length === 0) {
+                cardContainer.getAnimations().forEach(a => a.cancel());
+                cardContainer.style.transform = '';
+                cardContainer.style.opacity = '';
+                renderCardInstant();
+                isAnimating = false;
+                return;
+            }
+
+            const currentCard = deck[currentCardIndex];
+            card.classList.remove('is-flipped');
+            fillCardContent(currentCard);
+
+            // 3. Возврат карты на место с противоположной стороны
+            if (!prefersReducedMotion) {
+                const enterDistance = -direction * (window.innerWidth < 500 ? 120 : 180);
+                const enterAnim = cardContainer.animate(
+                    [
+                        { transform: `translateX(${enterDistance}px) rotate(${-direction * 8}deg) scale(0.85)`, opacity: 0 },
+                        { transform: 'translateX(0) rotate(0deg) scale(1)', opacity: 1 }
+                    ],
+                    {
+                        duration: 360,
+                        easing: 'cubic-bezier(0.175, 0.885, 0.32, 1.275)',
+                        fill: 'forwards'
+                    }
+                );
+
+                try {
+                    await enterAnim.finished;
+                } catch (e) { /* анимация могла быть отменена */ }
+            }
+
+            // 4. Очищаем инлайновые стили после анимации
+            cardContainer.getAnimations().forEach(a => a.cancel());
+            cardContainer.style.transform = '';
+            cardContainer.style.opacity = '';
+
+            pulseCounter();
+
+            btnRepeat.disabled = false;
+            btnKnow.disabled = false;
+            isAnimating = false;
+        }
+
+        async function handleAction(knows) {
+            if (deck.length === 0 || isAnimating) return;
 
             if (knows) {
                 deck.splice(currentCardIndex, 1);
@@ -362,17 +616,48 @@
                 const activeCard = deck.splice(currentCardIndex, 1)[0];
                 deck.push(activeCard);
             }
-            updateCard();
+
+            await animateCardChange(knows ? 1 : -1);
         }
 
-        // Перезапуск и рандомизация колоды
-        function restartDeck() {
+        async function restartDeck() {
+            if (isAnimating) return;
+
+            cardContainer.getAnimations().forEach(a => a.cancel());
+            cardContainer.style.transform = '';
+            cardContainer.style.opacity = '';
+
+            if (!prefersReducedMotion) {
+                isAnimating = true;
+                btnRestart.disabled = true;
+
+                const shake = cardContainer.animate(
+                    [
+                        { transform: 'rotate(0deg) scale(1)' },
+                        { transform: 'rotate(-4deg) scale(0.95)' },
+                        { transform: 'rotate(4deg) scale(0.95)' },
+                        { transform: 'rotate(0deg) scale(1)' }
+                    ],
+                    { duration: 320, easing: 'ease-in-out' }
+                );
+
+                try { await shake.finished; } catch (e) {}
+
+                cardContainer.getAnimations().forEach(a => a.cancel());
+                cardContainer.style.transform = '';
+                cardContainer.style.opacity = '';
+            }
+
             deck = shuffle([...initialQuestions]);
             currentCardIndex = 0;
-            updateCard();
+            renderCardInstant();
+
+            pulseCounter();
+
+            btnRestart.disabled = false;
+            isAnimating = false;
         }
 
-        // Автоматический старт при первой загрузке страницы
         restartDeck();
     </script>
 </body>
